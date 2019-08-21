@@ -10,7 +10,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
-  String price = '?';
+  Map price = {};
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
@@ -56,6 +56,40 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  getCryptoWidget(String cryptoCurrency) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+          child: Text(
+            '1 $cryptoCurrency = ${price[cryptoCurrency]} $selectedCurrency',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  getCryptoWidgets() {
+    List<Widget> cryptoWidgets = [];
+    for (String cryptoCurrency in cryptoList) {
+      Widget cryptoWidget = getCryptoWidget(cryptoCurrency);
+      cryptoWidgets.add(cryptoWidget);
+    }
+
+    return cryptoWidgets;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,8 +98,14 @@ class _PriceScreenState extends State<PriceScreen> {
 
   void loadCoinData() async {
     CoinData coinData = CoinData();
+    for (String cryptoCurrency in cryptoList) {
+      price[cryptoCurrency] = '?';
+    }
     print('Fetching Coin Data');
-    price = await coinData.getCoinData('BTC', selectedCurrency);
+    for (String cryptoCurrency in cryptoList) {
+      price[cryptoCurrency] =
+          await coinData.getCoinData(cryptoCurrency, selectedCurrency);
+    }
     setState(() {
       print(price);
     });
@@ -81,26 +121,10 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $price $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: getCryptoWidgets(),
           ),
           Container(
             height: 150.0,
